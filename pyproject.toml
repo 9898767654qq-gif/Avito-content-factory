@@ -1,0 +1,26 @@
+[project]
+name = "parnaya"
+version = "0.1.0"
+description = "Content factory and approval desk for an Avito publisher of banya goods"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.162.5",
+  "uvicorn[standard]==0.54.0",
+  "sqlalchemy==2.1.8",
+  "jinja2==3.1.6",
+  "python-multipart==0.0.33",
+  "httpx==0.28.1",
+  "pydantic==2.14.3",
+  "pydantic-settings==2.16.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+include = ["app*"]

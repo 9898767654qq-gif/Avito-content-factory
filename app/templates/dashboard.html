@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Стол — Парная{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Бани, бочки, купели, печи</p>
+  <h1>Что ждёт вашего слова</h1>
+  <p class="lede">Чат-бот с покупателями сюда не пишет сам. Он может оставить бриф или диалог, а на Авито объявление выходит только после явного согласования.</p>
+</section>
+
+<section class="ledger">
+  <article class="ledger-main">
+    <header class="section-head">
+      <h2>На согласовании</h2>
+      <span class="count">{{ counts.inbox }}</span>
+    </header>
+    {% if inbox %}
+      <ul class="inbox">
+        {% for listing in inbox %}
+          <li>
+            <a href="/listings/{{ listing.id }}">
+              <strong>{{ listing.title }}</strong>
+              <span>{{ listing.price | price }} · {{ listing.region }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">Пока никто не ждёт решения. Соберите бриф — черновик появится сразу и останется у вас.</p>
+    {% endif %}
+  </article>
+  <aside class="ledger-side">
+    <dl class="tally">
+      <div><dt>Черновики и проверенные</dt><dd>{{ counts.drafts }}</dd></div>
+      <div><dt>Уже опубликованы</dt><dd>{{ counts.published }}</dd></div>
+      <div><dt>На доработке</dt><dd>{{ counts.rework }}</dd></div>
+      <div><dt>Задач в очереди</dt><dd>{{ queue_waiting }}</dd></div>
+    </dl>
+    <a class="button" href="/briefs/new">Собрать бриф</a>
+  </aside>
+</section>
+
+<section class="panel">
+  <header class="section-head">
+    <h2>Все рабочие версии</h2>
+  </header>
+  {% if listings %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Объявление</th>
+            <th>Категория</th>
+            <th>Цена</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for listing in listings %}
+            <tr>
+              <td><a href="/listings/{{ listing.id }}">{{ listing.title }}</a><span class="muted"> версия {{ listing.version }}</span></td>
+              <td>{{ category_title(listing.category) }}</td>
+              <td>{{ listing.price | price }}</td>
+              <td><span class="stamp stamp-{{ listing.status }}">{{ status_of(listing) }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">Объявлений ещё нет. Первый бриф ничего не отправит наружу: по умолчанию публикация идёт в прогоне.</p>
+  {% endif %}
+</section>
+
+{% if audits %}
+<section class="panel">
+  <header class="section-head"><h2>Журнал</h2></header>
+  <ol class="audit">
+    {% for row in audits %}
+      <li>
+        <time datetime="{{ row.created_at }}">{{ row.created_at | dt }}</time>
+        <span>{{ audit_label(row.action) }}</span>
+        <strong>{{ row.actor }}</strong>
+        <a href="/listings/{{ row.listing_id }}">объявление {{ row.listing_id }}</a>
+      </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
+{% endblock %}

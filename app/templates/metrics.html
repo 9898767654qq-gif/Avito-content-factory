@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Метрики — Парная{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Обратная связь</p>
+  <h1>Просмотры, сердечки, контакты</h1>
+  <p class="lede">В этой версии цифры Авито — учебные сценарии, диалоги бота — настоящие записи из базы. Правило простое и пока не смотрит на избранное.</p>
+</section>
+
+<section class="rule-grid">
+  <article>
+    <h2>Мало просмотров</h2>
+    <p>Меньше {{ low_views }} просмотров — новая версия с другим заголовком. Главное фото нужно сменить вручную: пайплайн кадров ещё заглушка, и правило об этом предупредит.</p>
+  </article>
+  <article>
+    <h2>Смотрят и не пишут</h2>
+    <p>{{ high_views }} просмотров и больше, а запросов контакта не больше {{ low_contacts }} — описание пересобирается из тех же фактов, заголовок остаётся.</p>
+  </article>
+  <article>
+    <h2>Дальше снова вы</h2>
+    <p>Новая версия не публикуется сама. Она встаёт в согласование. Старая опубликованная карточка при этом не снимается.</p>
+  </article>
+</section>
+
+{% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Объявление</th>
+          <th>Просмотры</th>
+          <th>В избранном</th>
+          <th>Контакты</th>
+          <th>Диалоги</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td><a href="/listings/{{ row.listing.id }}">{{ row.listing.title }}</a></td>
+            <td>{{ row.metric.views if row.metric else "—" }}</td>
+            <td>{{ row.metric.favorites if row.metric else "—" }}</td>
+            <td>{{ row.metric.contact_requests if row.metric else "—" }}</td>
+            <td>{{ row.metric.dialogs if row.metric else "—" }}</td>
+            <td>
+              <form method="post" action="/metrics/evaluate" class="inline-form">
+                <input type="hidden" name="listing_id" value="{{ row.listing.id }}">
+                <button class="button button-quiet" type="submit">Проверить правило</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <section class="panel">
+    <header class="section-head"><h2>Снять учебные метрики</h2></header>
+    <form method="post" action="/metrics/collect" class="inline-form">
+      <select name="listing_id" required>
+        {% for row in rows %}
+          <option value="{{ row.listing.id }}">{{ row.listing.title }}</option>
+        {% endfor %}
+      </select>
+      <select name="scenario">
+        {% for key, label in scenario_labels.items() %}
+          <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="button" type="submit">Поставить в очередь</button>
+    </form>
+    <p class="fine">Задачу забирает служба публикации. Если она запущена, обновите страницу через секунду. Иначе на странице очереди есть ручной шаг.</p>
+  </section>
+{% else %}
+  <p class="empty">Снимать пока нечего: нет ни одного опубликованного объявления, даже в прогоне.</p>
+{% endif %}
+{% endblock %}

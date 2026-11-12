@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="google" content="notranslate">
+  <title>{% block title %}Парная{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,560;7..72,680&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>
+          <span class="brand-name">Парная</span>
+          <span class="brand-note">фабрика объявлений</span>
+        </span>
+      </a>
+      <nav class="nav">
+        <a href="/" class="{% if path == '/' %}is-active{% endif %}">Стол</a>
+        <a href="/briefs/new" class="{% if path.startswith('/briefs') %}is-active{% endif %}">Новый бриф</a>
+        <a href="/queue" class="{% if path.startswith('/queue') %}is-active{% endif %}">Очередь</a>
+        <a href="/metrics" class="{% if path.startswith('/metrics') %}is-active{% endif %}">Метрики</a>
+      </nav>
+      <form method="post" action="/actor" class="actor-form">
+        <label>
+          <span>Кто за столом</span>
+          <input id="actor-name" name="actor" value="{{ approver }}" maxlength="200" placeholder="Имя для журнала" autocomplete="name">
+        </label>
+        <input type="hidden" name="next" value="{{ path }}">
+        <button type="submit">Запомнить</button>
+      </form>
+      <p class="sidebar-note">Имя пишется в журнал согласования. На Авито объявление не уходит, пока вы сами не нажмёте «согласовать».</p>
+    </aside>
+    <main class="main">
+      {% if flash %}
+        <p class="banner banner-ok" role="status">{{ flash }}</p>
+      {% endif %}
+      {% if flash_error %}
+        <p class="banner banner-bad" role="alert">{{ flash_error }}</p>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll("form").forEach((form) => {
+      form.addEventListener("submit", () => {
+        const source = document.getElementById("actor-name");
+        if (!source) return;
+        let field = form.querySelector("input[name=actor]");
+        if (!field) {
+          field = document.createElement("input");
+          field.type = "hidden";
+          field.name = "actor";
+          form.appendChild(field);
+        }
+        if (!field.value.trim()) field.value = source.value;
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
