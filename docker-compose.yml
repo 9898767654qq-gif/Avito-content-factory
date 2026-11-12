@@ -1,0 +1,39 @@
+# Два сервиса, одна база SQLite на общем томе, между ними очередь в этой базе.
+services:
+  factory:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8741
+    ports:
+      - "8741:8741"
+    environment:
+      DATABASE_URL: sqlite:////data/factory.db
+      AVITO_CLIENT_MODE: ${AVITO_CLIENT_MODE:-dry_run}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      AVITO_CLIENT_ID: ${AVITO_CLIENT_ID:-}
+      AVITO_CLIENT_SECRET: ${AVITO_CLIENT_SECRET:-}
+      AVITO_API_BASE: ${AVITO_API_BASE:-https://api.avito.ru}
+      AVITO_TOKEN_URL: ${AVITO_TOKEN_URL:-https://api.avito.ru/token}
+      RUN_FACTORY_LOOP: "true"
+    volumes:
+      - factory-data:/data
+
+  publisher:
+    build: .
+    command: python -m app.worker
+    environment:
+      DATABASE_URL: sqlite:////data/factory.db
+      AVITO_CLIENT_MODE: ${AVITO_CLIENT_MODE:-dry_run}
+      AVITO_CLIENT_ID: ${AVITO_CLIENT_ID:-}
+      AVITO_CLIENT_SECRET: ${AVITO_CLIENT_SECRET:-}
+      AVITO_API_BASE: ${AVITO_API_BASE:-https://api.avito.ru}
+      AVITO_TOKEN_URL: ${AVITO_TOKEN_URL:-https://api.avito.ru/token}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-1}
+    volumes:
+      - factory-data:/data
+    depends_on:
+      - factory
+
+volumes:
+  factory-data:

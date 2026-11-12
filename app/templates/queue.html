@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Очередь — Парная{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Общая база, две службы</p>
+  <h1>Очередь задач</h1>
+  <p class="lede">Фабрика кладёт задачу, служба публикации забирает только свои: публикацию и съём метрик Авито. Доработку текста фабрика делает сама и снова отдаёт вам на согласование. Сейчас клиент Авито в режиме «{{ avito_mode }}».</p>
+</section>
+<form method="post" action="/queue/step" class="form-actions">
+  <button class="button button-quiet" type="submit">Выполнить один шаг публикации</button>
+  <p class="fine">Кнопка на случай, если отдельный процесс службы не запущен. В обычной работе шаг делает воркер.</p>
+</form>
+{% if tasks %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>№</th>
+          <th>Задача</th>
+          <th>Статус</th>
+          <th>Откуда</th>
+          <th>Объявление</th>
+          <th>Итог</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td>{{ task.id }}</td>
+            <td>{{ task_label(task.type) }}</td>
+            <td><span class="stamp stamp-task-{{ task.status }}">{{ task_status_label(task.status) }}</span></td>
+            <td>{{ task.source }}</td>
+            <td>
+              {% if task.listing_id %}
+                <a href="/listings/{{ task.listing_id }}">{{ task.listing_id }}</a>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td class="wrap">{{ task.error or task.result or "—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="empty">Очередь пустая. Она появится после согласования или съёма метрик.</p>
+{% endif %}
+{% endblock %}

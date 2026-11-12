@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Правка брифа{% else %}Новый бриф{% endif %} — Парная{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">{% if editing %}Правка исходных фактов{% else %}Исходные факты{% endif %}</p>
+  <h1>{% if editing %}Поправить бриф{% else %}Собрать объявление из брифа{% endif %}</h1>
+  <p class="lede">Пишите только то, что есть на самом деле. Шаблон не добавит материал, размер или гарантию, которых нет в полях. Бюджет продвижения в текст для Авито не попадает.</p>
+</section>
+
+{% if errors %}
+  <div class="banner banner-bad" role="alert">
+    <ul class="plain">
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+<div class="example-row">
+  <span>Подставить пример</span>
+  {% for example in examples %}
+    <button type="button" class="chip" data-example-id="{{ example.id }}">{{ example.label }}</button>
+  {% endfor %}
+</div>
+
+<p class="fine">Без скриптов откройте нужную категорию отдельно:
+  {% for category in categories %}
+    <a href="{{ page_path }}?category={{ category.slug }}">{{ category.title }}</a>{% if not loop.last %} · {% endif %}
+  {% endfor %}
+</p>
+
+<form method="post" action="{{ form_action }}" class="brief-form" id="brief-form">
+  <div class="form-grid">
+    <label class="field">
+      <span class="field-label">Категория</span>
+      <select name="category" id="category">
+        {% for category in categories %}
+          <option value="{{ category.slug }}" {% if category.slug == selected.slug %}selected{% endif %}>{{ category.title }}</option>
+        {% endfor %}
+      </select>
+      <span class="hint" id="category-lead">{{ selected.lead }}</span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Что продаём</span>
+      <input id="product-type" name="product_type" required maxlength="120" list="product-types" value="{{ values.product_type }}" placeholder="Например, баня-бочка 4 метра">
+      <datalist id="product-types"></datalist>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Для кого</span>
+      <input id="target-buyer" name="target_buyer" required maxlength="160" list="buyers" value="{{ values.target_buyer }}" placeholder="Частный покупатель на участок">
+      <datalist id="buyers">
+        {% for buyer in buyers %}
+          <option value="{{ buyer }}"></option>
+        {% endfor %}
+      </datalist>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Тон</span>
+      <select name="tone" id="tone">
+        {% for key, label in tones %}
+          <option value="{{ key }}" {% if values.tone == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Цена, ₽</span>
+      <input id="price" name="price" required inputmode="numeric" value="{{ values.price }}" placeholder="189000">
+    </label>
+
+    <label class="field">
+      <span class="field-label">Регион</span>
+      <input id="region" name="region" required maxlength="160" value="{{ values.region }}" placeholder="Ленинградская область">
+    </label>
+
+    <label class="field field-wide">
+      <span class="field-label">Особенности, каждая с новой строки</span>
+      <textarea id="features" name="key_features" required rows="4" placeholder="кедр&#10;печь в комплекте">{{ values.key_features }}</textarea>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Бюджет продвижения, ₽</span>
+      <input id="budget" name="promotion_budget" inputmode="numeric" value="{{ values.promotion_budget }}" placeholder="Не попадёт в текст">
+      <span class="hint">Внутренняя пометка. В объявление не подставляется.</span>
+    </label>
+  </div>
+
+  <fieldset class="extra-set">
+    <legend>Поля категории</legend>
+    <div id="extra-fields" class="form-grid"></div>
+    <noscript>
+      <div class="form-grid">
+        {% for field in selected.fields %}
+          <label class="field">
+            <span class="field-label">{{ field.label }}{% if field.required %} *{% endif %}</span>
+            <input name="extra__{{ field.key }}" maxlength="200" placeholder="{{ field.placeholder }}" value="{{ values.extra.get(field.key, '') }}" {% if field.required %}required{% endif %}>
+          </label>
+        {% endfor %}
+      </div>
+    </noscript>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="button">{% if editing %}Сохранить и собрать заново{% else %}Собрать черновик{% endif %}</button>
+    <p class="fine">После сборки текст пройдёт проверку. Согласование — отдельный шаг.</p>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script id="category-data" type="application/json">{{ categories_json | safe }}</script>
+<script id="example-data" type="application/json">{{ examples_json | safe }}</script>
+<script id="initial-data" type="application/json">{{ initial_json | safe }}</script>
+<script src="/static/brief.js"></script>
+{% endblock %}
